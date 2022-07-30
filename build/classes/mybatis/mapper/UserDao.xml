@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xm.dao.UserDao">
+
+	<resultMap id="UserMap" type="com.xm.bean.User">
+		<id property="id" column="user_id" />
+		<result property="name" column="user_name" />
+		<result property="nickname" column="nickname" />
+		<!-- <result property="password" column="user_pwd" /> -->
+		<result property="gender" column="user_gender" />
+		<!-- <result property="limit" column="user_limit" /> -->
+		<result property="institute" column="user_institute" />
+		<result property="major" column="user_major" />
+		<!-- <result property="role" column="user_role" /> <result property="club" 
+			column="user_club" /> -->
+		<result property="tel" column="user_tel" />
+		<result property="email" column="user_email" />
+		<result property="year" column="user_year" />
+	</resultMap>
+
+	<resultMap type="com.xm.bean.Login" id="LoginMap">
+		<id property="id" column="login_id" />
+		<result property="pwd" column="login_pwd" />
+		<result property="status" column="status" />
+	</resultMap>
+
+	<!--public User getUser(String id, String pwd); 存疑？为什么下面这里返回类型为resultType="com.xm.bean.User"，最终返回的结果为null，而用这个则可以返回正确的结果 -->
+	<select id="getUser" resultMap="LoginMap">
+		select * from login where
+		login_id=#{id} and login_pwd=#{pwd}
+	</select>
+
+	<!-- public User getUserByID(String id); -->
+	<select id="getUserByID" resultMap="UserMap">
+		select * from user where
+		user_id=#{id}
+	</select>
+	
+	<!-- public User getUserByName(String name); -->
+	<select id="getUserByName" resultMap="UserMap">
+		select * from user where
+		user_name=#{name}
+	</select>
+	
+	<!-- public Login getLoginByID(String id); -->
+	<select id="getLoginByID" resultMap="LoginMap">
+		select * from login where
+		login_id=#{id}
+	</select>
+
+	<!-- public List<User> getAll(); -->
+	<select id="getAll" resultMap="UserMap">
+		select * from user
+	</select>	
+
+	<!--public void addUser(User user); -->
+	<insert id="addUser">
+		insert into user(user_id,user_pwd,user_limit)
+		values(#{user_id},#{user_pwd},'1')
+	</insert>
+	
+	<!-- public int addNewLoginer(Login login); -->
+	<insert id="addNewLoginer">
+		insert into login(login_id,login_pwd,status)
+		values(#{id},#{pwd},#{status})
+	</insert>
+
+	<!--public void deleteLogin(String id); -->
+	<delete id="deleteLogin">
+		delete from login where login_id=#{id}
+	</delete>
+	
+	<!-- public int resetPwd(String id,String pwd); -->
+	<update id="resetPwd">
+		update login set login_pwd=#{pwd} where login_id=#{id}
+	</update>
+	
+	<!-- public int updateLoginLimit(String uid, int limit); -->
+	<update id="updateLoginLimit">
+		update login set status=#{param2} where login_id=#{param1}
+	</update>
+
+	<!--public void updateUser(User user); -->
+	<update id="updateUser">
+		update user
+		<set>
+			<if test="nickname!=null and !nickname.equals(&quot;&quot;)">
+				nickname=#{nickname},
+			</if>
+			<if test="email!=null and !email.equals(&quot;&quot;)">
+				user_email=#{email},
+			</if>
+			<if test="tel!=null and !tel.equals(&quot;&quot;)">
+				user_tel=#{tel},
+			</if>
+		</set>
+		<where>
+			user_id=#{id}
+		</where>
+	</update>
+</mapper>

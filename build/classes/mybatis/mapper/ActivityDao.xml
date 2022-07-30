@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xm.dao.ActivityDao">
+
+	<resultMap type="com.xm.bean.Activity" id="actMap">
+		<id property="actID" column="actID" />
+		<result property="actName" column="actName" />
+		<result property="actStart" column="actStart" />
+		<result property="actEnd" column="actEnd" />
+		<result property="actPlace" column="actPlace" />
+		<result property="actAttempt" column="actAttempt" />
+		<result property="actNum" column="actNum" />
+		<result property="organizer" column="organizer" />
+		<result property="credit" column="credit" />
+		<result property="actType" column="actType" />
+		<result property="checker" column="checker" />
+		<result property="cost" column="cost" />
+		<result property="isPass" column="isPass" />
+		<result property="scope" column="scope" />
+	</resultMap>
+
+	<!--public List<Activity> selectAllActs();// 获取所有社团的所有活动 -->
+	<select id="selectAllActs" resultMap="actMap">
+		select * from
+		activityinfo
+	</select>
+	
+	<!-- public List<Activity> selectAllActsRegister();// 获取所有申请发布成功的活动 -->
+	<select id="selectAllActsRegister" resultMap="actMap">
+		select * from
+		activityinfo where isPass=1
+	</select>
+
+	<!--public List<Activity> selectSomeActNewsByClub(String clubName);// 根据社团名获取某个社团的所有活动 -->
+	<select id="selectSomeActNewsByClub" resultMap="actMap">
+		select * from
+		activityinfo where organizer=#{clubName}
+	</select>
+
+	<!-- public Activity selectActById(String actId);//根据id值获取某一活动信息 -->
+	<select id="selectActById" resultMap="actMap">
+		select * from activityinfo
+		where actID=#{actId}
+	</select>
+
+	<!-- public List<Activity> selectActByUid(String uid);// 获取当前用户参加过或正在报名的社团 -->
+	<select id="selectActByUid" resultMap="actMap">
+		select * from activityinfo
+		a where EXISTS
+		(select * from t_user_act tua where tua.user_id=#{uid} and finished>=0 and
+		a.actID=tua.act_id)
+	</select>
+
+	<!--public int addActivity(Activity act);// 社团发布活动动态 -->
+	<insert id="addActivity">
+		insert into 
+		activityinfo(actID,actName,actStart,actEnd,actPlace,actType,actAttempt,actNum,organizer,credit,checker,cost,isPass,scope)
+		values(#{actID},#{actName},#{actStart},#{actEnd},#{actPlace},#{actType},#{actAttempt},#{actNum},#{organizer},#{credit},#{checker},#{cost},#{isPass},#{scope})
+	</insert>
+	
+	<!-- public int updateAct(Activity act);//再次申请注册活动，更新注册信息 -->
+	<update id="updateAct">
+		update activityinfo
+		<set>
+			<if test="actName!=null and !actName.equals(&quot;&quot;)">
+				actName=#{actName},
+			</if>
+			<if test="actStart!=null and !actStart.equals(&quot;&quot;)">
+				actStart=#{actStart},
+			</if>
+			<if test="actEnd!=null and !actEnd.equals(&quot;&quot;)">
+				actEnd=#{actEnd},
+			</if>
+			<if test="actPlace!=null and !actPlace.equals(&quot;&quot;)">
+				actPlace=#{actPlace},
+			</if>
+			<if test="actAttempt!=null and !actAttempt.equals(&quot;&quot;)">
+				actAttempt=#{actAttempt},
+			</if>
+			<if test="actNum!=null and !actNum.equals(&quot;&quot;)">
+				actNum=#{actNum},
+			</if>
+			<if test="organizer!=null and !organizer.equals(&quot;&quot;)">
+				organizer=#{organizer},
+			</if>
+			<if test="actType!=null and !actType.equals(&quot;&quot;)">
+				actType=#{actType},
+			</if>
+			<if test="credit!=null and !credit.equals(&quot;&quot;)">
+				credit=#{credit},
+			</if>
+			<if test="cost!=null and !cost.equals(&quot;&quot;)">
+				cost=#{cost},
+			</if>
+			<if test="isPass!=null and !isPass.equals(&quot;&quot;)">
+				isPass=#{isPass},
+			</if>
+			<if test="scope!=null and !scope.equals(&quot;&quot;)">
+				scope=#{scope},
+			</if>
+		</set>
+		<where>actID=#{actID}</where>
+	</update>
+
+	<resultMap type="com.xm.bean.SignActForm" id="signMap">
+		<id property="uid" column="user_id" />
+		<result property="actid" column="act_id" />
+		<result property="finished" column="finished" />
+		<result property="remarks" column="remarks" />
+		<result property="limit" column="user_limit"/>
+	</resultMap>
+
+	<!-- public SignActForm selectActByIdAndName(@Param("uid") String uid, @Param("actid") 
+		String actid);// 根据报名用户id和活动id -->
+	<select id="selectActByIdAndName" resultMap="signMap">
+		select * from
+		t_user_act where user_id=#{uid} and act_id=#{actid}
+	</select>
+
+	<!-- public List<String> selectActByOrganizer(String organizer);//根据承办方（即社团名字）查询其所举办的所有活动 -->
+	<select id="selectActByOrganizer" resultType="String">
+		select actID from
+		activityinfo where organizer=#{organizer}
+	</select>
+
+	<!-- public SignActForm selectUnsolvedActSignApply(String aid);// 获取报名某一活动的待处理申请 -->
+	<select id="selectUnsolvedActSignApply" resultMap="signMap">
+		select * from
+		t_user_act where finished>=0 and act_id=#{aid}
+	</select>
+	
+	<!-- public List<SignActForm> selectActSignByUid(String uid);// 获取当前用户报名活动的全部申请信息 -->
+	<select id="selectActSignByUid" resultMap="signMap">
+		select * from
+		t_user_act where user_id=#{uid} and user_limit=1
+	</select>
+	
+	<!-- public List<SignActForm> selectActPublishApplyByUid(String uid);// 获取某社团管理员发布活动的所有申请信息 -->
+	<select id="selectActPublishApplyByUid" resultMap="signMap">
+		select * from
+		t_user_act where user_id=#{uid} and user_limit=2
+	</select>
+	
+	<!-- public List<SignActForm> selectAllActApply();// 获取所有的活动申请信息 -->
+	<select id="selectAllActApply" resultMap="signMap">
+		select * from 
+		t_user_act where user_limit=2
+	</select>
+	
+	<!-- // 根据uid和aid获取活动发布的申请信息
+	public SignActForm selectActPublishApplyByUidAndAid(String uid, String aid); -->
+	<select id="selectActPublishApplyByUidAndAid">
+		select * from
+		t_user_act where user_id=#{uid} and club_id=#{cid}
+	</select>
+	
+	<!-- // 根据报名用户id和活动id
+	public SignActForm selectActByUidAndAid(@Param("uid") String uid, @Param("actid") String actid);-->
+	<select id="selectActByUidAndAid" resultMap="signMap">
+		select * from
+		t_user_act where user_id=#{uid} and act_id=#{actid}
+	</select>
+	
+	<!-- public Integer countMemberOfAct(String actid);//统计某活动报名了总人数，来限制报名人数 -->
+	<select id="countMemberOfAct" resultType="Integer">
+		select count(*) from t_user_act where act_id=#{actid} and finished=1
+	</select>
+	
+	<!-- public Activity selectActSignByUidAndAid(String uid, String aid); -->
+	<select id="selectActSignByUidAndAid" resultMap="signMap">
+		select * from t_user_act where user_id=#{param1} and act_id=#{param2}
+	</select>
+	
+
+	<!-- public int addSignActForm(SignActForm actForm);// 向报名活动申请表中添加新的记录 -->
+	<insert id="addSignActForm">
+		insert into
+		t_user_act(user_id,act_id,finished,remarks,user_limit)
+		values(#{uid},#{actid},#{finished},#{remarks},#{limit})
+	</insert>
+
+	<!-- public int updateStatus(@Param("uid") String uid, @Param("aid") String 
+		aid, @Param("status") int status);// 修改某个用户申请报名某一活动的状态值 -->
+	<update id="updateStatus">
+		update t_user_act set finished=#{status} where
+		act_id=#{aid} and user_id=#{uid}
+	</update>
+	
+	<!-- // 用户身份下修改申请报名活动的信息，可以重新填写备注
+	public int updateSignStatusWithRemarks(@Param("uid") String uid, @Param("aid") String aid,
+			@Param("status") int status, @Param("remarks") String remarks); -->
+	<update id="updateSignStatusWithRemarks">
+		update t_user_act set finished=#{status},remarks=#{remarks} where
+		act_id=#{aid} and user_id=#{uid}
+	</update>
+	
+	<!-- public int updateActInfoPassStatus(String aid, int status);//更新activity表中的某活动的通过状态 -->
+	<update id="updateActInfoPassStatus">
+		update activityinfo
+		set isPass=#{param2}
+		where actID=#{param1}
+	</update>
+
+</mapper>

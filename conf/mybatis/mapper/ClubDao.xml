@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xm.dao.ClubDao">
+
+	<resultMap id="clubMap" type="com.xm.bean.Club">
+		<id property="id" column="club_id" />
+		<result property="clubName" column="club_name" />
+		<result property="type" column="club_type" />
+		<result property="president" column="president" />
+		<result property="secretary" column="secretary" />
+		<result property="number" column="number" />
+		<result property="instructor" column="instructor" />
+		<result property="introduction" column="introduction" />
+		<result property="createDate" column="createDate" />
+		<result property="status" column="status" />
+	</resultMap>
+
+	<!--public Club getClubById(String id); -->
+	<select id="getClubById" resultMap="clubMap">
+		select * from clubinfo where
+		club_id=#{id}
+	</select>
+	
+	<!-- public List<String> getClubOneJoin(String id); -->
+	<select id="getClubOneJoin" resultType="String">
+		SELECT club_id
+		FROM
+		clubinfo c
+		WHERE EXISTS (SELECT * FROM t_user_club WHERE
+		c.club_id=club_id AND
+		user_id=#{id})
+	</select>
+
+	<!--public List<Club> getAllClubs(); -->
+	<select id="getAllClubs" resultMap="clubMap">
+		select * from clubinfo
+	</select>
+	
+	<!-- public List<Club> getAllClubsWithRegister();// 获取用户视角下的已注册社团列表 -->
+	<select id="getAllClubsWithRegister" resultMap="clubMap">
+		select * from clubinfo where status=1
+	</select>
+
+	<!-- public Club getClubByName(String name); -->
+	<select id="getClubByName" resultMap="clubMap">
+		select * from clubinfo
+		where club_name=#{name}
+	</select>
+
+	<!-- public List<Club> getClubByLikeName(String name); -->
+	<select id="getClubByLikeName" resultMap="clubMap">
+		<bind name="clubName" value="'%' + _parameter + '%'" />
+		select * from clubinfo where club_name like #{clubName}
+	</select>
+
+	<!--public List<String> getAllClubName(); -->
+	<select id="getAllClubName" resultType="String">
+		select club_name from
+		clubinfo
+	</select>
+		
+	<!--public int addClub(Club club);// 新建社团信息  -->
+	<insert id="addClub">
+		insert into	
+		clubinfo(club_id,club_name,club_type,president,secretary,instructor,introduction,createDate,status,number)
+		values(#{id},#{clubName},#{type},#{president},#{secretary},#{instructor},#{introduction},#{createDate},#{status},#{number})
+	</insert>
+
+	<!-- public List<String> getClubNameByUserid(String uid);// 获取某一管理员管理的所有社团 -->
+	<select id="getClubNameByUserid" resultType="String">
+		select club_name
+		from clubinfo c
+		where exists
+		(select * from t_user_club tua where c.club_id=tua.club_id and user_id=#{uid}
+		and user_limit=2 and tua.status=1)
+	</select>
+
+	<!-- public List<User> getAllMembersOfClub(String id); -->
+	<!-- 被引用文件的namespace+resultMap -->
+	<select id="getAllMembersOfClub" resultMap="com.xm.dao.UserDao.UserMap">
+		SELECT * FROM `user` u
+		LEFT JOIN t_user_club tc ON
+		tc.user_id=u.user_id
+		WHERE
+		tc.club_id=#{id}
+	</select>
+	
+	<!-- public int updateClubInfoStatus(String cid, int status);// 系统管理员修改社团注册的状态 -->
+	<update id="updateClubInfoStatus">
+		update clubinfo
+		set status=#{param2}
+		where club_id=#{param1}
+	</update>
+	
+	<!-- public int delClub(String cid);// 注销某社团信息 -->
+	<delete id="delClub">
+		delete from clubinfo where club_id=#{cid}
+	</delete>
+	
+	<!-- public int updateClubMember(String cid, int count);// 更新社团人数 -->
+	<update id="updateClubMember">
+		update clubinfo
+		set number=#{param2}
+		where club_id=#{param1}
+	</update>
+	
+	<!-- public int updateClub(Club club);//更新社团信息，可用于编辑社团信息，也可以用于社团的再次注册，修改必要的信息 -->
+	<update id="updateClub">
+		update clubinfo
+		<set>
+			<if test="id!=null and !id.equals(&quot;&quot;)">
+				club_id=#{id},
+			</if>
+			<if test="clubName!=null and !clubName.equals(&quot;&quot;)">
+				club_type=#{clubName},
+			</if>
+			<if test="president!=null and !president.equals(&quot;&quot;)">
+				president=#{president},
+			</if>
+			<if test="secretary!=null and !secretary.equals(&quot;&quot;)">
+				secretary=#{secretary},
+			</if>
+			
+			<if test="type!=null and !type.equals(&quot;&quot;)">
+				club_type=#{type},
+			</if>
+			<if test="instructor!=null and !instructor.equals(&quot;&quot;)">
+				instructor=#{instructor},
+			</if>
+			<if test="introduction!=null and !introduction.equals(&quot;&quot;)">
+				introduction=#{introduction},
+			</if>
+			<if test="number!=null and !number.equals(&quot;&quot;)">
+				number=#{number},
+			</if>
+			<if test="status!=null and !status.equals(&quot;&quot;)">
+				status=#{status},
+			</if>
+		</set>
+		where club_id=#{id}
+	</update>
+	
+	<resultMap type="com.xm.bean.ClubMemberForm" id="cmfMap">
+		<id property="uid" column="user_id"/>
+		<result property="cid" column="club_id"/>
+		<result property="role" column="club_role"/>
+		<result property="limit" column="user_limit"/>
+		<result property="status" column="status"/>
+		<result property="remarks" column="remarks"/>
+	</resultMap>
+	
+	<!-- public List<ClubMemberForm> getClubNameByCID(String cid);// 获取某个社团的名字 -->
+	<select id="getClubNameByCID" resultType="String">
+		select club_name from clubinfo where club_name=#{cid}
+	</select>
+	
+	<!-- public List<ClubMemberForm> selectClubApplyByCID(String cid);// 获取申报某社团的成员申请信息列表 -->
+	<select id="selectClubApplyByCID" resultMap="cmfMap">
+		select * from t_user_club where user_limit=1 and status>=0 and club_id=#{cid}
+	</select>
+	
+	<!-- public ClubMemberForm getClubSignByUidAndCid(String uid, String cid);// 查询是否存在某条申请加入社团的报名信息 -->
+	<select id="getClubSignByUidAndCid" resultMap="cmfMap">
+		select * from t_user_club where user_id=#{uid} and club_id=#{cid} and status>=0
+	</select>
+	
+	<!-- public List<ClubMemberForm> getClubSignByUid(String uid);// 显示申请加入社团的处理结果 -->
+	<select id="getClubSignByUid" resultMap="cmfMap">
+		select * from t_user_club where user_id=#{uid} and status>=0
+	</select>
+	
+	<!-- // 获取某社团成员，以普通用户身份
+	public ClubMemberForm getClubSignByUidAndCidAsUser(@Param("uid") String uid, @Param("cid") String cid); -->
+	<select id="getClubSignByUidAndCidAsUser" resultMap="cmfMap">
+		select * from t_user_club where user_id=#{uid} and club_id=#{cid}
+	</select>
+	
+	<!-- // 申请注册的用户就是该社团的管理员，此时需要从申请表中获取是自己所在的且是自己管理的社团申请信息
+	public List<ClubMemberForm> getClubSignByUidAsAnAdmin(String uid); -->
+	<select id="getClubSignByUidAsAnAdmin" resultMap="cmfMap">
+		select * from t_user_club where user_id=#{uid} and status>=0 and user_limit=2
+	</select>
+	
+	<!-- // 根据uid，获取普通用户加入的社团
+	public List<ClubMemberForm> getClubSignByUidAsUser(String uid); -->
+	<select id="getClubSignByUidAsUser" resultMap="cmfMap">
+		select * from t_user_club where user_id=#{uid} and status=1
+	</select>
+	
+	<!-- public List<ClubMemberForm> getAllClubRegisterApply();// 获取所有的社团注册信息 -->
+	<select id="getAllClubRegisterApply" resultMap="cmfMap">
+		select * from t_user_club where user_limit=2
+	</select>
+	
+	<!-- public int getClubCountMember(String cid);// 获取某社团总人数 -->
+	<select id="getClubCountMember">
+		select count(*) from t_user_club where club_id=#{cid} and status=1
+	</select>
+	
+	<!-- // 修改普通用户报名某一社团的申请状态，这个是由社团管理员操作的，因此备注内容不可修改
+	public int updateSignStatus(@Param("uid") String uid, @Param("cid") String cid,
+	 		@Param("status") int status); -->
+	<update id="updateSignStatus">
+		update t_user_club 
+		set status=#{status}
+		where club_id=#{cid} and user_id=#{uid}
+	</update>
+	
+	<!-- // 以用户的身份修改申请加入社团的状态，可以重新天填写备注，与上一个方法有所不同
+	public int updateSignStatusWithRemarks(@Param("uid") String uid, @Param("cid") String cid,
+			@Param("status") int status, @Param("remarks") String remarks); -->
+	<update id="updateSignStatusWithRemarks">
+		update t_user_club set status=#{status},remarks=#{remarks} where
+		club_id=#{cid} and user_id=#{uid}
+	</update>	
+	
+	<!--public int addSignClubApply(ClubMemberForm clubSign);// 新增加入社团的申请信息到数据库表中  -->
+	<insert id="addSignClubApply">
+		insert into	
+		t_user_club(user_id,club_id,club_role,user_limit,status,remarks)
+		values(#{uid},#{cid},#{role},#{limit},#{status},#{remarks})
+	</insert>
+	
+	<!-- public int delClubSignForm(String cid);// 注销社团的同时也要删除社团注册表中的信息 -->
+	<delete id="delClubSignForm">
+		delete from t_user_club where club_id=#{cid}
+	</delete>
+</mapper>

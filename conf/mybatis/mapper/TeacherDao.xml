@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xm.dao.TeacherDao">
+
+    <resultMap id="teacherMapper" type="com.xm.bean.Teacher">
+        <id property="id" column="id"/>
+        <result property="name" column="tName"/>
+        <result property="course" column="tClass"/>
+        <result property="address" column="address"/>
+        <result property="birth" column="birthday"/>
+    </resultMap>
+
+    <!--public Teacher getTeacherById(Integer id);-->
+    <select id="getTeacherById" resultMap="teacherMapper">
+        select * from t_teacher where id=#{id}
+    </select>
+
+    <!--public List<Teacher> getAllTeachers();-->
+    <select id="getAllTeachers" resultMap="teacherMapper">
+        select * from t_teacher
+    </select>
+
+</mapper>

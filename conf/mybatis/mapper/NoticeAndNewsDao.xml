@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xm.dao.NoticeAndNewsDao">
+
+	<resultMap id="noticeMap" type="com.xm.bean.ClubNotice">
+		<id property="noticeid" column="notice_id" />
+		<result property="cid" column="cid" />
+		<result property="title" column="title" />
+		<result property="content" column="content" />
+		<result property="likes" column="likes" />
+		<result property="browser" column="browser" />
+		<result property="launch" column="launch" />
+		<result property="status" column="status" />
+	</resultMap>
+	
+	<!-- public ClubNotice getNoticeByNidAndCid(String cid, String noticeid);// 根据cid，noticeid获取公告信息 -->
+	<select id="getNoticeByNidAndCid" resultMap="noticeMap">
+		select * from clubnotice where cid=#{param1} and notice_id=#{param2}
+	</select>
+	
+	<!-- public ClubNotice getAllNotices();// 获取所有的公告信息，以系统管理员身份的话就包括未发布的公告 -->
+	<select id="getAllNotices" resultMap="noticeMap">
+		select * from clubnotice
+	</select>
+	
+	<!-- public ClubNotice getNoticeByNid(String noticeid);// 根据nid获取公告信息 -->
+	<select id="getNoticeByNid" resultMap="noticeMap">
+		select * from clubnotice where notice_id=#{noticeid}
+	</select>
+	
+	<!-- public List<ClubNotice> getNoticeByCid(String cid);// 根据cid获取该社团的所有公告 -->
+	<select id="getNoticeByCid" resultMap="noticeMap">
+		select * from clubnotice where cid=#{cid}
+	</select>
+	
+	<!-- public int addNotice(ClubNotice notice);// 添加公告信息到数据库中（保存notice信息为草稿） -->
+	<insert id="addNotice">
+		insert into 
+		clubnotice(cid,notice_id,title,content,likes,browser,launch,status)
+		values(#{cid},#{noticeid},#{title},#{content},#{likes},#{browser},#{launch},#{status})
+	</insert>
+	
+	<!-- public int updateNotice(ClubNotice notice);// 更新公告内容，也可以是重新发送原已有的草稿（更新已保存为草稿的notice信息）-->
+	<update id="updateNotice">
+		update clubnotice
+		<set>
+			<if test="cid!=null and !cid.equals(&quot;&quot;)">
+				cid=#{cid},
+			</if>
+			<if test="title!=null and !title.equals(&quot;&quot;)">
+				title=#{title},
+			</if>
+			<if test="content!=null and !content.equals(&quot;&quot;)">
+				content=#{content},
+			</if>
+			<if test="likes!=null and !likes.equals(&quot;&quot;)">
+				likes=#{likes},
+			</if>
+			<if test="browser!=null and !browser.equals(&quot;&quot;)">
+				browser=#{browser},
+			</if>
+			<if test="launch!=null and !launch.equals(&quot;&quot;)">
+				launch=#{launch},
+			</if>
+			<if test="status!=null and !status.equals(&quot;&quot;)">
+				status=#{status},
+			</if>
+		</set>
+		<where>
+			notice_id=#{noticeid}
+		</where>
+	</update>
+	
+	<!-- public int updateNoticeLikesNum(String nid, int likes);//用户点赞公告后需要更新数据库信息 -->
+	<update id="updateNoticeLikesNum">
+		update clubnotice set likes=#{param2} where notice_id=#{param1}
+	</update>	
+	
+	<resultMap id="commentMap" type="com.xm.bean.Comment">
+		<id property="noticeid" column="notice_id"/>
+		<result property="uid" column="user_id"/>
+		<result property="content" column="content"/>
+		<result property="ctime" column="comment_time"/>
+	</resultMap>	
+	
+	<!-- public List<Comment> getCommentsByNid(String nid);// 获取某公告附属的评论信息 -->
+	<select id="getCommentsByNid" resultMap="commentMap">
+		select * from comment where notice_id=#{nid}
+	</select>
+	
+	<!-- // 保存评论公告的信息
+	public int updateNoticeComments(String uid, String nid, String comment, Date date); -->
+	<insert id="updateNoticeComments">
+		insert into 
+		comment(notice_id,user_id,content,comment_time)
+		values(#{param2},#{param1},#{param3},#{param4})
+	</insert>
+	
+</mapper>
